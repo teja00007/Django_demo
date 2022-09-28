@@ -10,12 +10,12 @@ from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from .tasks import send_review_email_task
 
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
     def post(self, request):
-        #import pdb;pdb.set_trace()
         user = request.data
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
@@ -30,7 +30,7 @@ class RegisterView(generics.GenericAPIView):
         data = {'email_body': email_body, 'to_email': 'tejazap@gmail.com',
                 'email_subject': 'Verify your email'}
 
-        Util.send_email(data)
+        send_review_email_task.delay(data)
         return Response(user, status=status.HTTP_201_CREATED)
 
 
